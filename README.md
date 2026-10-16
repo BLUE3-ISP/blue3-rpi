@@ -1,72 +1,85 @@
-# BLUE3_RPI
+# Blue3 RPI
 
-## Raspberry Pi initial script
+Bootstrap interativo para Raspberry Pi OS Lite: prepara pacotes de desenvolvimento,
+interfaces de sensores, espelho APT e sincronização de horário da Blue3. O único
+script de provisionamento versionado neste repositório é [rpi_start.sh](rpi_start.sh).
+Os antigos `blue3_rpi*` não estão neste checkout; o material histórico está
+arquivado fora deste repositório.
 
-This directory contains the initial bootstrap script for Raspberry Pi OS Lite:
+## Estado e arquitetura
 
-- [rpi_start.sh](rpi_start.sh).
-- The blue3_rpi* files are legacy files from the monitoring setup.
+Revisão de fonte em 15/10/2026, base `e00540c` (`0.1.13`). O script executa todas
+as etapas no sistema local, como root; não existe serviço Web, banco, firmware,
+aplicação de leitura de sensores ou instalador de imagens neste projeto.
 
-Goal:
+Ressalva sobre serviço Web: o script instala o metapacote `php`. No Debian com PHP 8.4,
+`php8.4` depende de `libapache2-mod-php8.4 | php8.4-fpm | php8.4-cgi`; sem FPM ou CGI
+já instalados, o APT escolhe a primeira alternativa e traz o Apache. O script não
+configura nem desativa esse serviço. Conferido nas dependências do pacote, não em
+execução num Raspberry Pi: confira no dispositivo com `systemctl status apache2`.
 
-- prepare a minimal installation for projects with I2C, digital sensors and analog sensors;
-- keep compatibility with Raspberry Pi OS Lite (Debian-based), running in root mode;
-- offer interactive configuration to choose between a graphical environment (Desktop) or CLI only.
+| Etapa | Comportamento implementado |
+|---|---|
+| Pré-requisitos | Bash com expansão de maiúsculas, root e `/etc/os-release` com ID `raspbian` ou `debian` |
+| APT | Reescreve os endereços Debian reconhecidos para `http://mirror.blue3.com.br/debian`; atualiza índices e instala pacotes |
+| Pacotes | Python/pip/venv, GPIO/SMBus/SPI, i2c-tools, curl, PHP CLI/curl, systemd-timesyncd, Git e editores |
+| Horário | Sobrescreve timesyncd com `ntp.blue3.com.br` e fallback `pool.ntp.org`; tenta ativar o serviço/NTP |
+| Sensores | Habilita I2C e SPI; pergunta por 1-Wire, com resposta padrão não |
+| Interface | Pergunta por Desktop, padrão não; tenta metapacotes em ordem e depois ambiente mínimo |
+| Log | Acrescenta em `/var/log/rpi_start.log`, com modo `640` |
 
-## What the script does
+O reconhecimento de hardware apenas avisa quando um arquivo de modelo existe e
+não contém Raspberry Pi; não é uma validação rígida de placa, arquitetura ou versão.
+A disponibilidade dos pacotes e do espelho precisa ser conferida no sistema-alvo.
 
-1. Validation and safety
-- runs in Bash with strict mode (set -euo pipefail);
-- validates that it is running as root;
-- validates that the system is compatible with Raspberry Pi OS/Debian;
-- writes an execution log to /var/log/rpi_start.log.
+## Preparar e executar
 
-2. Base package installation
-- installs python3;
-- installs curl;
-- installs php;
-- adds useful packages for sensor and development projects:
-	- python3-pip, python3-venv
-	- python3-smbus, python3-rpi.gpio, python3-gpiozero, python3-spidev
-	- i2c-tools
-	- php-cli, php-curl
-	- ca-certificates, git, nano, vim-tiny
-
-3. Enabling interfaces for sensors
-- enables I2C;
-- enables SPI (useful for ADCs such as the MCP3008);
-- asks whether to enable 1-Wire (example: DS18B20).
-
-4. System mode choice
-- asks whether to install a graphical environment;
-- if YES: installs an available desktop metapackage (with a fallback to a minimal graphical environment);
-- if NO: keeps the system in CLI mode (multi-user.target).
-
-## How to run
-
-On the Raspberry Pi:
+Use um Raspberry Pi destinado a esse provisionamento, com acesso administrativo,
+rede e cópia recuperável das configurações existentes. Não é um comando de
+consulta: modifica APT, horário, boot, módulos e alvo padrão do systemd.
 
 ```bash
+# No dispositivo-alvo, a partir de um checkout revisado:
 sudo bash rpi_start.sh
 ```
 
-## Post-installation
+Não há flags, dry-run ou arquivo de ambiente do operador. Os endereços são
+constantes do script; respostas são lidas do terminal. A revisão documental não
+executou o bootstrap, instalou pacotes nem alterou um dispositivo.
 
-- reboot the Raspberry Pi to apply all module and boot changes;
-- validate I2C with:
+## Configurações afetadas e recuperação
+
+O script cria cópias `.blue3.bak` para os arquivos APT existentes e
+`/etc/systemd/timesyncd.conf`. Uma nova execução pode sobrescrever a mesma cópia;
+não há histórico de backups nem rollback automático. As alterações nos arquivos
+`/boot/firmware/config.txt` ou `/boot/config.txt` e `/etc/modules` não ganham backup
+por esse helper. Preserve esses arquivos antes de executar quando já houver configuração.
+
+`raspi-config` é usado quando disponível; o fallback escreve as diretivas
+`dtparam=i2c_arm=on`, `dtparam=spi=on` e, se escolhido, `dtoverlay=w1-gpio`.
+O script não instala um programa de coleta nem testa sensores físicos.
+
+## Verificar o resultado
+
+Após revisar o log e reiniciar o dispositivo quando necessário, conferir:
 
 ```bash
-i2cdetect -y 1
+systemctl get-default
+timedatectl status
+ls -l /dev/i2c-* /dev/spidev*
 ```
 
-- validate SPI by checking whether /dev/spidev0.0 exists:
+Em uma bancada apropriada, `i2cdetect -y 1` pode ajudar a conferir o barramento;
+a resposta depende do hardware conectado. Verifique também o espelho APT e o
+serviço de horário. O texto final “concluída” não prova que todas as chamadas
+best-effort de systemd ou `modprobe` tiveram sucesso.
 
-```bash
-ls -l /dev/spidev*
-```
+## Desenvolvimento e limites
 
-## Notes
+Validação estática: `bash -n rpi_start.sh`. Isso não executa o script nem comprova
+pacotes, rede, boot, drivers ou sensores. Não há suíte/CI funcional; o workflow
+versionado publica releases, não testa hardware.
 
-- the script was designed for a minimal basic installation, avoiding unnecessary dependencies;
-- by default, the recommended option for servers and gateways is CLI;
-- use Desktop only when there is a real need for a graphical interface on the device.
+[Pontos de código e lacunas](docs/REVISAO-20261015.md) aguardam decisão separada.
+As instruções de contribuição estão em [AGENTS.md](AGENTS.md). Conteúdo interno e
+PRs são em português; correção documental não exige bump conforme [version.md](version.md).
