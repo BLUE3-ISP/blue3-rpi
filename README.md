@@ -3,14 +3,20 @@
 Bootstrap interativo para Raspberry Pi OS Lite: prepara pacotes de desenvolvimento,
 interfaces de sensores, espelho APT e sincronização de horário da Blue3. O único
 script de provisionamento versionado neste repositório é [rpi_start.sh](rpi_start.sh).
-Os antigos `blue3_rpi*` não estão neste checkout; há material histórico no
-[backup inicial](https://github.com/BLUE3-ISP/blue3-src-backup-inicial).
+Os antigos `blue3_rpi*` não estão neste checkout; o material histórico está
+arquivado fora deste repositório.
 
 ## Estado e arquitetura
 
 Revisão de fonte em 15/10/2026, base `e00540c` (`0.1.13`). O script executa todas
 as etapas no sistema local, como root; não existe serviço Web, banco, firmware,
 aplicação de leitura de sensores ou instalador de imagens neste projeto.
+
+Ressalva sobre serviço Web: o script instala o metapacote `php`. No Debian com PHP 8.4,
+`php8.4` depende de `libapache2-mod-php8.4 | php8.4-fpm | php8.4-cgi`; sem FPM ou CGI
+já instalados, o APT escolhe a primeira alternativa e traz o Apache. O script não
+configura nem desativa esse serviço. Conferido nas dependências do pacote, não em
+execução num Raspberry Pi: confira no dispositivo com `systemctl status apache2`.
 
 | Etapa | Comportamento implementado |
 |---|---|
