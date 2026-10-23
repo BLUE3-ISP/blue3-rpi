@@ -81,5 +81,6 @@ pacotes, rede, boot, drivers ou sensores. Não há suíte/CI funcional; o workfl
 versionado publica releases, não testa hardware.
 
 [Pontos de código e lacunas](docs/REVISAO-20261015.md) aguardam decisão separada.
-As instruções de contribuição estão em [AGENTS.md](AGENTS.md). Conteúdo interno e
-PRs são em português; correção documental não exige bump conforme [version.md](version.md).
+Contribution instructions are in [AGENTS.md](AGENTS.md). From 0.1.14 on, repository
+content and PRs are written in English (US); the Portuguese already here stays until it
+is next touched. A documentation fix does not require a bump, per [version.md](version.md).
