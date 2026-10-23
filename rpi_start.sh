@@ -91,6 +91,13 @@ backup_file_if_exists() {
 	fi
 }
 
+rewrite_debian_mirror() {
+	# Match the complete archive URI so debian-security and debian-ports stay intact.
+	sed -i -E \
+		's#https?://(deb|ftp)\.debian\.org/debian(/?)([[:space:]]|$)#http://mirror.blue3.com.br/debian\2\3#g' \
+		"$1"
+}
+
 configure_blue3_mirror() {
 	log "INFO" "Configurando mirror APT padrao: ${BLUE3_MIRROR_URL}"
 
@@ -98,21 +105,11 @@ configure_blue3_mirror() {
 	backup_file_if_exists /etc/apt/sources.list.d/debian.sources
 
 	if [[ -f /etc/apt/sources.list ]]; then
-		sed -i \
-			-e 's#http://deb.debian.org/debian#http://mirror.blue3.com.br/debian#g' \
-			-e 's#https://deb.debian.org/debian#http://mirror.blue3.com.br/debian#g' \
-			-e 's#http://ftp.debian.org/debian#http://mirror.blue3.com.br/debian#g' \
-			-e 's#https://ftp.debian.org/debian#http://mirror.blue3.com.br/debian#g' \
-			/etc/apt/sources.list
+		rewrite_debian_mirror /etc/apt/sources.list
 	fi
 
 	if [[ -f /etc/apt/sources.list.d/debian.sources ]]; then
-		sed -i \
-			-e 's#http://deb.debian.org/debian#http://mirror.blue3.com.br/debian#g' \
-			-e 's#https://deb.debian.org/debian#http://mirror.blue3.com.br/debian#g' \
-			-e 's#http://ftp.debian.org/debian#http://mirror.blue3.com.br/debian#g' \
-			-e 's#https://ftp.debian.org/debian#http://mirror.blue3.com.br/debian#g' \
-			/etc/apt/sources.list.d/debian.sources
+		rewrite_debian_mirror /etc/apt/sources.list.d/debian.sources
 	fi
 }
 
@@ -274,4 +271,6 @@ main() {
 	log "INFO" "Configuracao concluida. Reinicie o Raspberry Pi para aplicar tudo."
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+	main "$@"
+fi
