@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.15 - Preserve Debian security repositories when selecting the Blue3 mirror
+
+Match the complete Debian archive URI instead of replacing its prefix inside
+debian-security or other repository paths. Both legacy sources.list and deb822
+sources keep their security channels while ordinary Debian archives move to
+the Blue3 mirror. Isolated source-file tests cover both formats and repeated runs.
+
 ## 0.1.14 - the repository is written in English (US) from this version on, following its new owner on GitHub
 
 On 23/10/2026 the repository moved from `BLUE3-ISP` to `samirhvbr`. The

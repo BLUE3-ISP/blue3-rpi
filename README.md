@@ -21,7 +21,7 @@ execução num Raspberry Pi: confira no dispositivo com `systemctl status apache
 | Etapa | Comportamento implementado |
 |---|---|
 | Pré-requisitos | Bash com expansão de maiúsculas, root e `/etc/os-release` com ID `raspbian` ou `debian` |
-| APT | Reescreve os endereços Debian reconhecidos para `http://mirror.blue3.com.br/debian`; atualiza índices e instala pacotes |
+| APT | Rewrites complete Debian archive URIs to `http://mirror.blue3.com.br/debian`, preserves security/other repository paths, then updates indexes and installs packages |
 | Pacotes | Python/pip/venv, GPIO/SMBus/SPI, i2c-tools, curl, PHP CLI/curl, systemd-timesyncd, Git e editores |
 | Horário | Sobrescreve timesyncd com `ntp.blue3.com.br` e fallback `pool.ntp.org`; tenta ativar o serviço/NTP |
 | Sensores | Habilita I2C e SPI; pergunta por 1-Wire, com resposta padrão não |
@@ -76,9 +76,10 @@ best-effort de systemd ou `modprobe` tiveram sucesso.
 
 ## Desenvolvimento e limites
 
-Validação estática: `bash -n rpi_start.sh`. Isso não executa o script nem comprova
-pacotes, rede, boot, drivers ou sensores. Não há suíte/CI funcional; o workflow
-versionado publica releases, não testa hardware.
+Run `bash -n rpi_start.sh` for shell syntax and
+`python3 -m unittest discover -s tests -v` for isolated APT source-file regression
+tests. These checks do not execute the bootstrap or verify packages, networking,
+boot, drivers, or sensors. The release workflow does not test hardware.
 
 [Pontos de código e lacunas](docs/REVISAO-20261015.md) aguardam decisão separada.
 Contribution instructions are in [AGENTS.md](AGENTS.md). From 0.1.14 on, repository

@@ -1,6 +1,6 @@
 # Versão — Blue3 RPI
 
-**Versão atual:** `0.1.14`
+**Current version:** `0.1.15`
 
 Bootstrap do Raspberry Pi OS Lite para os dispositivos Blue3.
 
