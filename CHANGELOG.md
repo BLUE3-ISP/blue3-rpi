@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.14 - the echo blocks switch to English (US), following the owner on GitHub
+
+The marked rules in `CLAUDE.md` and `AGENTS.md` are rewritten from the single
+source at [samirhvbr/repodocs](https://github.com/samirhvbr/repodocs), and this
+time the variant changes: the repository carried the Portuguese blocks, and
+`origin` now names `samirhvbr/blue3-rpi`, which is outside the Portuguese set
+(`BLUE3-ISP/*`, `samirhvbr/blue3-intranet`, `samirhvbr/blue3-ai-login`). The
+language of a repository follows its owner on GitHub, so every block that has a
+Portuguese variant arrives in English (US).
+
+Only the blocks change in this commit. Text written outside the markers is the
+repository's own, and history is not rewritten: Portuguese messages and
+documents already there stay as they are until they are next touched.
+
 ## 0.1.13 - Tira do README o link para repositório privado e avisa que o metapacote php pode puxar o Apache
 
 O README apontava para o repositório privado de backup inicial: o link não abre para quem não é da casa e revelava o nome do repositório. Agora diz só que o material histórico está arquivado fora deste repositório. Acrescenta também a ressalva de que o `rpi_start.sh` instala o metapacote `php`, que no Debian com PHP 8.4 aceita o Apache (`libapache2-mod-php8.4`) como dependência, embora o projeto não tenha serviço Web. Correção documental sem bump, conforme version.md.
